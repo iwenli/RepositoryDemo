@@ -4,4 +4,9 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\0.Repository\Demo.Core.IRepository\Demo.Core.IRepository.csproj" />
+    <ProjectReference Include="..\Demo.Core.IService\Demo.Core.IService.csproj" />
+  </ItemGroup>
+
 </Project>
