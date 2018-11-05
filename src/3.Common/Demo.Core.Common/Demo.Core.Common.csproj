@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Folder Include="Helper\" />
+    <Folder Include="Extension\" />
   </ItemGroup>
 
 </Project>
