@@ -1,4 +1,4 @@
-﻿using Demo.Core.Log;
+﻿using Demo.Core.LogHelper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +17,20 @@ namespace Demo.Core.Filter
 	{
 		private readonly IHostingEnvironment _env;
 		private readonly ILoggerHelper _loggerHelper;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="env"></param>
+		/// <param name="loggerHelper"></param>
 		public GlobalExceptionsFilter(IHostingEnvironment env, ILoggerHelper loggerHelper)
 		{
 			_env = env;
 			_loggerHelper = loggerHelper;
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="context"></param>
 		public void OnException(ExceptionContext context)
 		{
 			var json = new JsonErrorResponse();
@@ -35,7 +44,6 @@ namespace Demo.Core.Filter
 
 			//采用log4net 进行错误日志记录
 			_loggerHelper.Error(json.Message, WriteLog(json.Message, context.Exception));
-
 		}
 
 		/// <summary>

@@ -13,7 +13,7 @@ namespace Demo.Core.Controllers
 	/// </summary>
 	[Route("api/[controller]")]
 	[ApiController]
-	[Authorize(Policy = "Admin")]
+	//[Authorize(Policy = "Admin")]
 	public class ValuesController : ControllerBase
 	{
 		// GET api/values

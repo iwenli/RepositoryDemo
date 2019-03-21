@@ -21,6 +21,8 @@ using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.EntityFrameworkCore;
 using Demo.Core.Models;
+using static Demo.Core.CustomApiVersion.CustomApiVersion;
+using System.Reflection;
 
 namespace Demo.Core
 {
@@ -60,24 +62,24 @@ namespace Demo.Core
 
 			#region swagger
 			services.AddSwaggerGen(c =>
+			{
+				//遍历出全部的版本，做文档信息展示
+				typeof(ApiVersions).GetEnumNames().ToList().ForEach(version =>
 				{
-					c.SwaggerDoc("v1", new Info
+					c.SwaggerDoc(version, new Info
 					{
-						Version = "v0.1.0",
+						Version = version,
 						Title = $"{ApiName} API",
-						Description = $"{ApiName} 框架说明文档",
+						Description = $"{ApiName} HTTP API " + version,
 						TermsOfService = "None",
-						Contact = new Swashbuckle.AspNetCore.Swagger.Contact
-						{
-							Name = ApiName,
-							Email = "admin@iwenli.org",
-							Url = "http://www.iwenli.org"
-						}
+						Contact = new Contact { Name = ApiName, Email = "admin@iwenli.org", Url = "http://www.iwenli.org" }
 					});
+					c.OrderActionsBy(m => m.RelativePath);
+				});
 
 				#region 读取xml信息
 				var basePath = ApplicationEnvironment.ApplicationBasePath;
-					var xmlPath = Path.Combine(basePath, "Demo.Core.xml");//这个就是刚刚配置的xml文件名
+				var xmlPath = Path.Combine(basePath, "Demo.Core.xml");//这个就是刚刚配置的xml文件名
 				var xmlModelPath = Path.Combine(basePath, "Demo.Core.Model.xml");//这个就是Model层的xml文件名
 				c.IncludeXmlComments(xmlPath, true);//默认的第二个参数是false，这个是controller的注释，记得修改
 				c.IncludeXmlComments(xmlModelPath);
@@ -87,15 +89,15 @@ namespace Demo.Core
 				//添加header验证信息
 				//c.OperationFilter<SwaggerHeader>();
 				var security = new Dictionary<string, IEnumerable<string>> { { "Demo.Core", new string[] { } }, };
-					c.AddSecurityRequirement(security);
+				c.AddSecurityRequirement(security);
 				//方案名称“Demo.Core”可自定义，上下一致即可
 				c.AddSecurityDefinition("Demo.Core", new ApiKeyScheme
-					{
-						Description = "JWT授权(数据将在请求头中进行传输) 直接在下框中输入{token}\"",
-						Name = "Authorization",//jwt默认的参数名称
+				{
+					Description = "JWT授权(数据将在请求头中进行传输) 直接在下框中输入{token}\"",
+					Name = "Authorization",//jwt默认的参数名称
 					In = "header",//jwt默认存放Authorization信息的位置(请求头中)
 					Type = "apiKey"
-					});
+				});
 				#endregion
 			});
 			#endregion
@@ -113,8 +115,8 @@ namespace Demo.Core
 				options.AddPolicy("AdminOrClient", policy => policy.RequireRole("Admin,Client").Build());
 			});
 
-		    services.AddDbContext<DBContext>(options =>
-		            options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
+			services.AddDbContext<DBContext>(options =>
+					options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
 			#endregion
 		}
 
@@ -133,9 +135,12 @@ namespace Demo.Core
 				app.UseSwagger();
 				app.UseSwaggerUI(c =>
 				{
-					c.SwaggerEndpoint("/swagger/v1/swagger.json", "ApiHelp V1");
-					c.RoutePrefix = "";//路径配置，设置为空，表示直接访问该文件
-					//c.InjectJavascript($"/swagger_translator.js"); //注入汉化脚本
+					//根据版本名称倒序 遍历展示
+					typeof(ApiVersions).GetEnumNames().OrderByDescending(e => e).ToList().ForEach(version =>
+					{
+						c.SwaggerEndpoint($"/swagger/{version}/swagger.json", $"{ApiName} {version}");
+					});
+					c.RoutePrefix = ""; //路径配置，设置为空，表示直接在根域名（localhost:8001）访问该文件,注意localhost:8001/swagger是访问不到的，去launchSettings.json把launchUrl去掉
 				});
 				#endregion
 			}
@@ -145,8 +150,11 @@ namespace Demo.Core
 			}
 
 			app.UseMiddleware<JwtTokenAuth>();
-
+			//跳转https
 			app.UseHttpsRedirection();
+			//把错误码返回给前台
+			app.UseStatusCodePages();
+
 			app.UseMvc();
 		}
 	}
