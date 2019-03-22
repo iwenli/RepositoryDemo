@@ -149,9 +149,15 @@ namespace Demo.Core
 				app.UseHsts();
 			}
 
-			app.UseMiddleware<JwtTokenAuth>();
+			//app.UseMiddleware<JwtTokenAuth>();
+
+
 			//跳转https
 			app.UseHttpsRedirection();
+			// 使用静态文件
+			app.UseStaticFiles();
+			// 使用cookie
+			app.UseCookiePolicy();
 			//把错误码返回给前台
 			app.UseStatusCodePages();
 
