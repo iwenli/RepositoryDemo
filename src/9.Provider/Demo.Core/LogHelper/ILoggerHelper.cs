@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Demo.Core.LogHelper
+namespace Demo.Core.Log
 {
 	/// <summary>
 	/// 日志接口

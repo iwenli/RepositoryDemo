@@ -1,4 +1,5 @@
 ﻿using Demo.Core.Filter;
+using Demo.Core.Log;
 using Demo.Core.Repository;
 using log4net;
 using log4net.Config;
@@ -50,6 +51,11 @@ namespace Demo.Core
 		/// <param name="services"></param>
 		public void ConfigureServices(IServiceCollection services)
 		{
+			#region 部分服务注入-netcore自带方法
+			//缓存注入
+			//log日志注入
+			services.AddSingleton<ILoggerHelper, LogHelper>();
+			#endregion
 			#region 初始化DB
 			services.AddScoped<DbContext>();
 			#endregion
@@ -114,7 +120,6 @@ namespace Demo.Core
 					options.SerializerSettings.ContractResolver = new DefaultContractResolver();
 				});
 			#endregion
-
 
 			#region Token服务注册
 			services.AddSingleton<IMemoryCache>(factory =>
