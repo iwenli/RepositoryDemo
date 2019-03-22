@@ -48,7 +48,7 @@ namespace Demo.Core.Repository.Base
 		/// <param name="objId">id（必须指定主键特性 [SugarColumn(IsPrimaryKey=true)]），如果是联合主键，请使用Where条件</param>
 		/// <param name="blnUseCache">是否使用缓存</param>
 		/// <returns>数据实体</returns>
-		public async Task<TEntity> QueryByID(object objId, bool blnUseCache = false)
+		public async Task<TEntity> QueryById(object objId, bool blnUseCache = false)
 		{
 			return await Task.Run(() => db.Queryable<TEntity>().WithCacheIF(blnUseCache).InSingle(objId));
 		}
@@ -111,21 +111,16 @@ namespace Demo.Core.Repository.Base
 		/// <param name="lstIgnoreColumns">忽略列</param>
 		/// <param name="strWhere">更新条件</param>
 		/// <returns></returns>
-		public async Task<bool> Update(
-		  TEntity entity,
-		  List<string> lstColumns = null,
-		  List<string> lstIgnoreColumns = null,
-		  string strWhere = ""
-			)
+		public async Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null, string strWhere = "")
 		{
 			IUpdateable<TEntity> up = await Task.Run(() => db.Updateable(entity));
 			if (lstIgnoreColumns != null && lstIgnoreColumns.Count > 0)
 			{
-				up = await Task.Run(() => up.IgnoreColumns(it => lstIgnoreColumns.Contains(it)));
+				up = await Task.Run(() => up.IgnoreColumns(lstIgnoreColumns.Contains));
 			}
 			if (lstColumns != null && lstColumns.Count > 0)
 			{
-				up = await Task.Run(() => up.UpdateColumns(it => lstColumns.Contains(it)));
+				up = await Task.Run(() => up.UpdateColumns(lstColumns.Contains));
 			}
 			if (!string.IsNullOrEmpty(strWhere))
 			{

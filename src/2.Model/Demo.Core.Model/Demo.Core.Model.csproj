@@ -13,6 +13,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>F:\1开发\编码\dotnet\RepositoryDemo\src\2.Model\Demo.Core.Model\Demo.Core.Model.xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="sqlSugarCore" Version="4.9.9.3" />
+  </ItemGroup>
 
 </Project>

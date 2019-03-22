@@ -12,7 +12,7 @@ namespace Demo.Core.LogHelper
 	/// </summary>
 	public class LogHelper : ILoggerHelper
 	{
-		private readonly ConcurrentDictionary<Type, ILog> Loggers = new ConcurrentDictionary<Type, ILog>();
+		private readonly ConcurrentDictionary<Type, ILog> _loggers = new ConcurrentDictionary<Type, ILog>();
 
 		/// <summary>
 		/// 获取记录器
@@ -21,14 +21,14 @@ namespace Demo.Core.LogHelper
 		/// <returns></returns>
 		private ILog GetLogger(Type source)
 		{
-			if (Loggers.ContainsKey(source))
+			if (_loggers.ContainsKey(source))
 			{
-				return Loggers[source];
+				return _loggers[source];
 			}
 			else
 			{
 				ILog logger = LogManager.GetLogger(Startup.repository.Name, source);
-				Loggers.TryAdd(source, logger);
+				_loggers.TryAdd(source, logger);
 				return logger;
 			}
 		}

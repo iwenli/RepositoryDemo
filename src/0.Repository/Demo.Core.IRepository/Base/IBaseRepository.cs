@@ -13,7 +13,7 @@ namespace Demo.Core.IRepository.Base
 	public interface IBaseRepository<TEntity> where TEntity : class
 	{
 		
-		Task<TEntity> QueryByID(object objId, bool blnUseCache = false);
+		Task<TEntity> QueryById(object objId, bool blnUseCache = false);
 		Task<List<TEntity>> QueryByIDs(object[] lstIds);
 
 		Task<long> Add(TEntity model);

@@ -22,7 +22,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据实体</returns>
 		public async Task<TEntity> QueryByID(object objId, bool blnUseCache = false)
 		{
-			return await baseDal.QueryByID(objId, blnUseCache);
+			return await baseDal.QueryById(objId, blnUseCache);
 		}
 
 		/// <summary>
