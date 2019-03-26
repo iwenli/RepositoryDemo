@@ -1,6 +1,8 @@
-﻿using Demo.Core.Filter;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Autofac.Extras.DynamicProxy;
+using Demo.Core.Filter;
 using Demo.Core.Log;
-using Demo.Core.Repository;
 using log4net;
 using log4net.Config;
 using log4net.Repository;
@@ -12,9 +14,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using static Demo.Core.CustomApiVersion.CustomApiVersion;
 
 namespace Demo.Core
@@ -28,7 +32,6 @@ namespace Demo.Core
 		/// log4net 仓储库
 		/// </summary>
 		public static ILoggerRepository repository { get; set; }
-
 
 		public Startup(IConfiguration configuration)
 		{
@@ -49,20 +52,21 @@ namespace Demo.Core
 		/// 将服务添加到容器
 		/// </summary>
 		/// <param name="services"></param>
-		public void ConfigureServices(IServiceCollection services)
+		public IServiceProvider ConfigureServices(IServiceCollection services)
 		{
 			#region 部分服务注入-netcore自带方法
 			//缓存注入
 			//log日志注入
 			services.AddSingleton<ILoggerHelper, LogHelper>();
 			#endregion
+
 			#region 初始化DB
-			services.AddScoped<DbContext>();
+			//services.AddScoped<DbContext>();
 			#endregion
 
 			#region Swagger UI Service
 
-			var basePath = ApplicationEnvironment.ApplicationBasePath;
+			var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
 
 			services.AddSwaggerGen(c =>
 			{
@@ -134,6 +138,53 @@ namespace Demo.Core
 				options.AddPolicy("AdminOrClient", policy => policy.RequireRole("Admin,Client").Build());
 			});
 			#endregion
+
+			#region AutoFac
+			//实例化 AutoFac 容器
+			var builder = new ContainerBuilder();
+			//注册要通过反射创建的组件
+			//builder.RegisterType<AdvertisementServices>().As<IAdvertisementServices>();
+
+			try
+			{
+				#region 不引用项目，通过FileLoad
+				var serviceDllFile = Path.Combine(basePath, "Demo.Core.Service.dll");
+				var serviceAssembly = Assembly.LoadFile(serviceDllFile);
+				builder.RegisterAssemblyTypes(serviceAssembly)
+					.AsImplementedInterfaces()
+					.InstancePerLifetimeScope()
+					.EnableInterfaceInterceptors() //引用Autofac.Extras.DynamicProxy;
+												   // 如果你想注入两个，就这么写  InterceptedBy(typeof(BlogCacheAOP), typeof(BlogLogAOP));
+												   // 如果想使用Redis缓存，请必须开启 redis 服务，端口号我的是6319，如果不一样还是无效，否则请使用memory缓存 BlogCacheAOP
+												   //.InterceptedBy(cacheType.ToArray())//允许将拦截器服务的列表分配给注册。 
+					;
+
+				var repositoryDllFile = Path.Combine(basePath, "Demo.Core.Repository.dll");
+				var repositoryAssembly = Assembly.LoadFile(repositoryDllFile);
+				builder.RegisterAssemblyTypes(repositoryAssembly).AsImplementedInterfaces();
+
+				#endregion
+
+				#region 直接引用项目
+				//var servicveAssembly = Assembly.Load("Demo.Core.Service");
+				//builder.RegisterAssemblyTypes(servicveAssembly).AsImplementedInterfaces();  //指定已扫描程序集中的类型注册为提供所有其实现的接口。
+				//var repositoryAssembly = Assembly.Load("Demo.Core.Repository");
+				//builder.RegisterAssemblyTypes(repositoryAssembly).AsImplementedInterfaces(); 
+				#endregion
+
+				#endregion
+			}
+			catch (Exception e)
+			{
+				throw new Exception(e.Message);
+			}
+
+			//将 services 填充 AutoFac 容器生成器
+			builder.Populate(services);
+			//使用已进行的组件等级创建新容器
+			var applicationContainer = builder.Build();
+			//第三方ico接管
+			return new AutofacServiceProvider(applicationContainer);
 		}
 
 		/// <summary>

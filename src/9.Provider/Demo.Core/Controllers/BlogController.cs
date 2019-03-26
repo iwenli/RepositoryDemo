@@ -1,18 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Demo.Core.IService;
+﻿using Demo.Core.IService;
 using Demo.Core.Model.Models;
-using Demo.Core.Service;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Demo.Core.Controllers
 {
 	[Route("api/Blog")]
 	public class BlogController : Controller
 	{
+		private readonly IAdvertisementServices _advertisementServices;
+
+		public BlogController(IAdvertisementServices advertisementServices)
+		{
+			_advertisementServices = advertisementServices;
+		}
+
 		/// <summary>
 		/// 根据id获取数据 GET: api/Blog/5
 		/// </summary>
@@ -21,9 +24,7 @@ namespace Demo.Core.Controllers
 		[HttpGet("{id}", Name = "Get")]
 		public async Task<List<Advertisement>> Get(int id)
 		{
-			IAdvertisementServices advertisementServices = new AdvertisementServices();
-
-			return await advertisementServices.Query(d => d.Id == id);
+			return await _advertisementServices.Query(d => d.Id == id);
 		}
 	}
 }

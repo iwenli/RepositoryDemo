@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
+    <PackageReference Include="Autofac.Extras.DynamicProxy" Version="4.5.0" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.0" />
@@ -25,10 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\0.Repository\Demo.Core.Repository\Demo.Core.Repository.csproj" />
+    <ProjectReference Include="..\..\0.Repository\Demo.Core.IRepository\Demo.Core.IRepository.csproj" />
     <ProjectReference Include="..\..\1.Service\Demo.Core.IService\Demo.Core.IService.csproj" />
-    <ProjectReference Include="..\..\1.Service\Demo.Core.Service\Demo.Core.Service.csproj" />
     <ProjectReference Include="..\..\2.Model\Demo.Core.Model\Demo.Core.Model.csproj" />
+    <ProjectReference Include="..\..\3.Common\Demo.Core.Common\Demo.Core.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

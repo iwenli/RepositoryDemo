@@ -1,21 +1,17 @@
 ﻿using Demo.Core.IRepository;
 using Demo.Core.IService;
 using Demo.Core.Model.Models;
-using Demo.Core.Repository;
 using Demo.Core.Service.Base;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Demo.Core.Service
 {
 	public class AdvertisementServices : BaseServices<Advertisement>, IAdvertisementServices
 	{
-		IAdvertisementRepository dal;
-		public AdvertisementServices()
+		private readonly IAdvertisementRepository _advertisementRepository;
+		public AdvertisementServices(IAdvertisementRepository advertisementRepository)
 		{
-			this.dal = new AdvertisementRepository();
-			base.baseDal = dal;
+			_advertisementRepository = advertisementRepository;
+			base.baseDal = _advertisementRepository;
 		}
 
 		public void ReturnExp()

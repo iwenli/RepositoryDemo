@@ -4,9 +4,12 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\9.Provider\Demo.Core\bin\Debug\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\0.Repository\Demo.Core.IRepository\Demo.Core.IRepository.csproj" />
-    <ProjectReference Include="..\..\0.Repository\Demo.Core.Repository\Demo.Core.Repository.csproj" />
     <ProjectReference Include="..\Demo.Core.IService\Demo.Core.IService.csproj" />
   </ItemGroup>
 

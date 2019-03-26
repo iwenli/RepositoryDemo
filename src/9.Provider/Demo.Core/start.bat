@@ -1,1 +1,1 @@
-dotnet Demo.Core.dll
+dotnet run Demo.Core

@@ -9,10 +9,10 @@ namespace Demo.Core.Common.Helper
 	/// <summary>
 	/// appsettings.json操作类
 	/// </summary>
-	public class Appsettings
+	public class AppsettingsHelper
 	{
 		static IConfiguration Configuration { get; set; }
-		static Appsettings()
+		static AppsettingsHelper()
 		{
 			//ReloadOnChange = true 当appsettings.json被修改时重新加载
 			Configuration = new ConfigurationBuilder()
@@ -24,7 +24,7 @@ namespace Demo.Core.Common.Helper
 		/// </summary>
 		/// <param name="sections"></param>
 		/// <returns></returns>
-		public static string app(params string[] sections)
+		public static string Get(params string[] sections)
 		{
 			try
 			{
