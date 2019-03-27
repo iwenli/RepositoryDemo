@@ -1,6 +1,9 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.DynamicProxy;
+using Demo.Core.Aop;
+using Demo.Core.Common.Extension;
+using Demo.Core.Common.Helper;
 using Demo.Core.Filter;
 using Demo.Core.Log;
 using log4net;
@@ -8,7 +11,6 @@ using log4net.Config;
 using log4net.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Demo.Core.Cache;
 using static Demo.Core.CustomApiVersion.CustomApiVersion;
 
 namespace Demo.Core
@@ -56,6 +59,7 @@ namespace Demo.Core
 		{
 			#region 部分服务注入-netcore自带方法
 			//缓存注入
+			services.AddSingleton<ICaching, MemoryCaching>();
 			//log日志注入
 			services.AddSingleton<ILoggerHelper, LogHelper>();
 			#endregion
@@ -143,6 +147,8 @@ namespace Demo.Core
 			//实例化 AutoFac 容器
 			var builder = new ContainerBuilder();
 			//注册要通过反射创建的组件
+			builder.RegisterType<LogAop>();
+			builder.RegisterType<MemoryCacheAop>();
 			//builder.RegisterType<AdvertisementServices>().As<IAdvertisementServices>();
 
 			try
@@ -150,13 +156,28 @@ namespace Demo.Core
 				#region 不引用项目，通过FileLoad
 				var serviceDllFile = Path.Combine(basePath, "Demo.Core.Service.dll");
 				var serviceAssembly = Assembly.LoadFile(serviceDllFile);
+				// AOP 开关，如果想要打开指定的功能，只需要在 appsettigns.json 对应对应 true 就行。
+				var cacheType = new List<Type>();
+				//if (AppsettingsHelper.Get(new string[] { "AppSettings", "RedisCaching", "Enabled" }).ObjToBool())
+				//{
+				//	cacheType.Add(typeof(BlogRedisCacheAOP));
+				//}
+				if (AppsettingsHelper.Get(new string[] { "AppSettings", "MemoryCachingAOP", "Enabled" }).ObjToBool())
+				{
+					cacheType.Add(typeof(MemoryCacheAop));
+				}
+				if (AppsettingsHelper.Get(new string[] { "AppSettings", "LogAop", "Enabled" }).ObjToBool())
+				{
+					cacheType.Add(typeof(LogAop));
+				}
+
 				builder.RegisterAssemblyTypes(serviceAssembly)
 					.AsImplementedInterfaces()
 					.InstancePerLifetimeScope()
 					.EnableInterfaceInterceptors() //引用Autofac.Extras.DynamicProxy;
 												   // 如果你想注入两个，就这么写  InterceptedBy(typeof(BlogCacheAOP), typeof(BlogLogAOP));
 												   // 如果想使用Redis缓存，请必须开启 redis 服务，端口号我的是6319，如果不一样还是无效，否则请使用memory缓存 BlogCacheAOP
-												   //.InterceptedBy(cacheType.ToArray())//允许将拦截器服务的列表分配给注册。 
+					.InterceptedBy(cacheType.ToArray())//允许将拦截器服务的列表分配给注册。 
 					;
 
 				var repositoryDllFile = Path.Combine(basePath, "Demo.Core.Repository.dll");

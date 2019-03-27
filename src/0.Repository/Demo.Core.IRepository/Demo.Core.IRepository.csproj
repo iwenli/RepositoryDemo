@@ -8,4 +8,8 @@
     <ProjectReference Include="..\..\2.Model\Demo.Core.Model\Demo.Core.Model.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Blog\" />
+  </ItemGroup>
+
 </Project>

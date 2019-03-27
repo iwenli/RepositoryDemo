@@ -2,9 +2,11 @@
 using SqlSugar;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Demo.Core.Model.Models;
 
 namespace Demo.Core.Repository.Base
 {
@@ -12,7 +14,7 @@ namespace Demo.Core.Repository.Base
 	/// 仓储 基类
 	/// </summary>
 	/// <typeparam name="TEntity"></typeparam>
-	public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class, new()
+	public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : RootEntity, new()
 	{
 		private DbContext context;
 		private SqlSugarClient db;
@@ -73,26 +75,26 @@ namespace Demo.Core.Repository.Base
 			return await Task.Run(() => db.Insertable(entity).ExecuteReturnBigIdentity());
 		}
 
-		/// <summary>
-		/// 更新实体数据(以主键为条件)
-		/// </summary>
-		/// <param name="entity">实体类</param>
-		/// <returns></returns>
-		public async Task<bool> Update(TEntity entity)
-		{
-			var i = await Task.Run(() => db.Updateable(entity).ExecuteCommand());
-			return i > 0;
-		}
-		/// <summary>
-		/// 更新实体数据
-		/// </summary>
-		/// <param name="entity">实体类</param>
-		/// <param name="strWhere">更新条件</param>
-		/// <returns></returns>
-		public async Task<bool> Update(TEntity entity, string strWhere)
-		{
-			return await Task.Run(() => db.Updateable(entity).Where(strWhere).ExecuteCommand() > 0);
-		}
+		///// <summary>
+		///// 更新实体数据(以主键为条件)
+		///// </summary>
+		///// <param name="entity">实体类</param>
+		///// <returns></returns>
+		//public async Task<bool> Update(TEntity entity)
+		//{
+		//	var i = await Task.Run(() => db.Updateable(entity).ExecuteCommand());
+		//	return i > 0;
+		//}
+		///// <summary>
+		///// 更新实体数据
+		///// </summary>
+		///// <param name="entity">实体类</param>
+		///// <param name="strWhere">更新条件</param>
+		///// <returns></returns>
+		//public async Task<bool> Update(TEntity entity, string strWhere)
+		//{
+		//	return await Task.Run(() => db.Updateable(entity).Where(strWhere).ExecuteCommand() > 0);
+		//}
 		/// <summary>
 		/// 更新数据
 		/// </summary>
@@ -103,6 +105,7 @@ namespace Demo.Core.Repository.Base
 		{
 			return await Task.Run(() => db.Ado.ExecuteCommand(strSql, parameters) > 0);
 		}
+
 		/// <summary>
 		/// 更新实体数据
 		/// </summary>
@@ -113,20 +116,20 @@ namespace Demo.Core.Repository.Base
 		/// <returns></returns>
 		public async Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null, string strWhere = "")
 		{
-			IUpdateable<TEntity> up = await Task.Run(() => db.Updateable(entity));
+			var updateable = db.Updateable(entity);
 			if (lstIgnoreColumns != null && lstIgnoreColumns.Count > 0)
 			{
-				up = await Task.Run(() => up.IgnoreColumns(lstIgnoreColumns.Contains));
+				updateable = updateable.IgnoreColumns(lstIgnoreColumns.Contains);
 			}
 			if (lstColumns != null && lstColumns.Count > 0)
 			{
-				up = await Task.Run(() => up.UpdateColumns(lstColumns.Contains));
+				updateable = updateable.UpdateColumns(lstColumns.Contains);
 			}
 			if (!string.IsNullOrEmpty(strWhere))
 			{
-				up = await Task.Run(() => up.Where(strWhere));
+				updateable = updateable.Where(strWhere);
 			}
-			return await Task.Run(() => up.ExecuteCommand()) > 0;
+			return await updateable.ExecuteCommandAsync() > 0;
 		}
 
 		/// <summary>

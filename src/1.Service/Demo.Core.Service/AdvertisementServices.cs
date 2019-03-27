@@ -8,10 +8,9 @@ namespace Demo.Core.Service
 	public class AdvertisementServices : BaseServices<Advertisement>, IAdvertisementServices
 	{
 		private readonly IAdvertisementRepository _advertisementRepository;
-		public AdvertisementServices(IAdvertisementRepository advertisementRepository)
+		public AdvertisementServices(IAdvertisementRepository advertisementRepository) : base(advertisementRepository)
 		{
 			_advertisementRepository = advertisementRepository;
-			base.baseDal = _advertisementRepository;
 		}
 
 		public void ReturnExp()

@@ -5,14 +5,18 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Demo.Core.Model.Models;
 
 namespace Demo.Core.Service.Base
 {
-	public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : class, new()
+	public class BaseServices<TEntity> : IBaseServices<TEntity> where TEntity : RootEntity
 	{
-		//public IBaseRepository<TEntity> baseDal = new BaseRepository<TEntity>();
-		public IBaseRepository<TEntity> baseDal;//通过在子类的构造函数中注入，这里是基类，不用构造函数
+		private readonly IBaseRepository<TEntity> _baseRepository;
 
+		public BaseServices(IBaseRepository<TEntity> baseRepository)
+		{
+			_baseRepository = baseRepository;
+		}
 
 		/// <summary>
 		/// 根据ID查询一条数据
@@ -22,7 +26,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据实体</returns>
 		public async Task<TEntity> QueryByID(object objId, bool blnUseCache = false)
 		{
-			return await baseDal.QueryById(objId, blnUseCache);
+			return await _baseRepository.QueryById(objId, blnUseCache);
 		}
 
 		/// <summary>
@@ -32,7 +36,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据实体列表</returns>
 		public async Task<List<TEntity>> QueryByIDs(object[] lstIds)
 		{
-			return await baseDal.QueryByIDs(lstIds);
+			return await _baseRepository.QueryByIDs(lstIds);
 		}
 
 		/// <summary>
@@ -42,28 +46,9 @@ namespace Demo.Core.Service.Base
 		/// <returns></returns>
 		public async Task<long> Add(TEntity entity)
 		{
-			return await baseDal.Add(entity);
+			return await _baseRepository.Add(entity);
 		}
 
-		/// <summary>
-		/// 更新实体数据(以主键为条件)
-		/// </summary>
-		/// <param name="entity">实体类</param>
-		/// <returns></returns>
-		public async Task<bool> Update(TEntity entity)
-		{
-			return await baseDal.Update(entity);
-		}
-		/// <summary>
-		/// 更新实体数据
-		/// </summary>
-		/// <param name="entity">实体类</param>
-		/// <param name="strWhere">更新条件</param>
-		/// <returns></returns>
-		public async Task<bool> Update(TEntity entity, string strWhere)
-		{
-			return await baseDal.Update(entity, strWhere);
-		} 
 		/// <summary>
 		/// 更新实体数据
 		/// </summary>
@@ -72,14 +57,10 @@ namespace Demo.Core.Service.Base
 		/// <param name="lstIgnoreColumns">忽略列</param>
 		/// <param name="strWhere">更新条件</param>
 		/// <returns></returns>
-		public async Task<bool> Update(
-		  TEntity entity,
-		  List<string> lstColumns = null,
-		  List<string> lstIgnoreColumns = null,
-		  string strWhere = ""
-			)
+		public async Task<bool> Update(TEntity entity,List<string> lstColumns = null,List<string> lstIgnoreColumns = null,
+			string strWhere = "")
 		{
-			return await baseDal.Update(entity, lstColumns, lstIgnoreColumns, strWhere);
+			return await _baseRepository.Update(entity, lstColumns, lstIgnoreColumns, strWhere);
 		}
 
 		/// <summary>
@@ -89,7 +70,7 @@ namespace Demo.Core.Service.Base
 		/// <returns></returns>
 		public async Task<bool> Delete(TEntity entity)
 		{
-			return await baseDal.Delete(entity);
+			return await _baseRepository.Delete(entity);
 		}
 
 		/// <summary>
@@ -99,7 +80,7 @@ namespace Demo.Core.Service.Base
 		/// <returns></returns>
 		public async Task<bool> DeleteById(object id)
 		{
-			return await baseDal.DeleteById(id);
+			return await _baseRepository.DeleteById(id);
 		}
 
 		/// <summary>
@@ -109,7 +90,7 @@ namespace Demo.Core.Service.Base
 		/// <returns></returns>
 		public async Task<bool> DeleteByIds(object[] ids)
 		{
-			return await baseDal.DeleteByIds(ids);
+			return await _baseRepository.DeleteByIds(ids);
 		}
 
 
@@ -120,7 +101,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据列表</returns>
 		public async Task<List<TEntity>> Query()
 		{
-			return await baseDal.Query();
+			return await _baseRepository.Query();
 		}
 
 		/// <summary>
@@ -130,7 +111,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据列表</returns>
 		public async Task<List<TEntity>> Query(string strWhere)
 		{
-			return await baseDal.Query(strWhere);
+			return await _baseRepository.Query(strWhere);
 		}
 
 		/// <summary>
@@ -140,7 +121,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据列表</returns>
 		public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> whereExpression)
 		{
-			return await baseDal.Query(whereExpression);
+			return await _baseRepository.Query(whereExpression);
 		}
 
 		/// <summary>
@@ -151,7 +132,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据列表</returns>
 		public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> whereExpression, string strOrderByFileds)
 		{
-			return await baseDal.Query(whereExpression, strOrderByFileds);
+			return await _baseRepository.Query(whereExpression, strOrderByFileds);
 		}
 		/// <summary>
 		/// 查询一个列表
@@ -162,7 +143,7 @@ namespace Demo.Core.Service.Base
 		/// <returns></returns>
 		public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, object>> orderByExpression, bool isAsc = true)
 		{
-			return await baseDal.Query(whereExpression, orderByExpression, isAsc);
+			return await _baseRepository.Query(whereExpression, orderByExpression, isAsc);
 		}
 
 		/// <summary>
@@ -173,7 +154,7 @@ namespace Demo.Core.Service.Base
 		/// <returns>数据列表</returns>
 		public async Task<List<TEntity>> Query(string strWhere, string strOrderByFileds)
 		{
-			return await baseDal.Query(strWhere, strOrderByFileds);
+			return await _baseRepository.Query(strWhere, strOrderByFileds);
 		}
 
 
@@ -189,7 +170,7 @@ namespace Demo.Core.Service.Base
 			int intTop,
 			string strOrderByFileds)
 		{
-			return await baseDal.Query(whereExpression, intTop, strOrderByFileds);
+			return await _baseRepository.Query(whereExpression, intTop, strOrderByFileds);
 		}
 
 		/// <summary>
@@ -204,7 +185,7 @@ namespace Demo.Core.Service.Base
 			int intTop,
 			string strOrderByFileds)
 		{
-			return await baseDal.Query(strWhere, intTop, strOrderByFileds);
+			return await _baseRepository.Query(strWhere, intTop, strOrderByFileds);
 		}
 
 
@@ -223,7 +204,7 @@ namespace Demo.Core.Service.Base
 			int intPageSize = 20,
 			string strOrderByFileds = null)
 		{
-			return await baseDal.QueryPage(whereExpression, intPageIndex, intPageSize, strOrderByFileds);
+			return await _baseRepository.QueryPage(whereExpression, intPageIndex, intPageSize, strOrderByFileds);
 		}
 
 		/// <summary>
@@ -240,7 +221,7 @@ namespace Demo.Core.Service.Base
 		  int intPageSize = 20,
 		  string strOrderByFileds = null)
 		{
-			return await baseDal.QueryPage(strWhere, intPageIndex, intPageSize, strOrderByFileds);
+			return await _baseRepository.QueryPage(strWhere, intPageIndex, intPageSize, strOrderByFileds);
 		}
 	}
 }

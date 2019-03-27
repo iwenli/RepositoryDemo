@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Demo.Core.Model.Models;
 
 namespace Demo.Core.IService.Base
 {
@@ -10,7 +11,7 @@ namespace Demo.Core.IService.Base
 	///	服务基 接口
 	/// </summary>
 	/// <typeparam name="TEntity"></typeparam>
-	public interface IBaseServices<TEntity> where TEntity : class
+	public interface IBaseServices<TEntity> where TEntity : RootEntity
 	{
 		Task<TEntity> QueryByID(object objId, bool blnUseCache = false);
 		Task<List<TEntity>> QueryByIDs(object[] lstIds);
@@ -21,9 +22,10 @@ namespace Demo.Core.IService.Base
 		Task<bool> Delete(TEntity model);
 		Task<bool> DeleteByIds(object[] ids);
 
-		Task<bool> Update(TEntity model);
-		Task<bool> Update(TEntity entity, string strWhere);
-		Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null, string strWhere = "");
+		//Task<bool> Update(TEntity model);
+		//Task<bool> Update(TEntity entity, string strWhere);
+		Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null,
+			string strWhere = "");
 
 		Task<List<TEntity>> Query();
 		Task<List<TEntity>> Query(string strWhere);

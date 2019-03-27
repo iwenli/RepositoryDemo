@@ -9,6 +9,11 @@ namespace Demo.Core.Model.Models
 	/// </summary>
 	public class RootEntity
 	{
+		public RootEntity()
+		{
+			
+		}
+
 		/// <summary>
 		/// ID
 		/// </summary>

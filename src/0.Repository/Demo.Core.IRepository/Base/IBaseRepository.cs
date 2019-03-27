@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Demo.Core.Model.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,7 +11,7 @@ namespace Demo.Core.IRepository.Base
 	/// 仓储基接口
 	/// </summary>
 	/// <typeparam name="TEntity"></typeparam>
-	public interface IBaseRepository<TEntity> where TEntity : class
+	public interface IBaseRepository<TEntity> where TEntity : RootEntity
 	{
 		
 		Task<TEntity> QueryById(object objId, bool blnUseCache = false);
@@ -22,8 +23,8 @@ namespace Demo.Core.IRepository.Base
 		Task<bool> Delete(TEntity model);
 		Task<bool> DeleteByIds(object[] ids);
 
-		Task<bool> Update(TEntity model);
-		Task<bool> Update(TEntity entity, string strWhere);
+		//Task<bool> Update(TEntity model);
+		//Task<bool> Update(TEntity entity, string strWhere);
 		Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null, string strWhere = "");
 
 		Task<List<TEntity>> Query();
