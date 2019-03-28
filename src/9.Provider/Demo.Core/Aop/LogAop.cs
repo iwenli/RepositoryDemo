@@ -23,7 +23,7 @@ namespace Demo.Core.Aop
 		{
 			//记录被拦截方法的日志信息
 			Exception exception = null;
-			var logMsg = $"{DateTime.Now:yyyyMMddHHmmss}=>当前执行方法：{invocation.Method.Name} 参数是：{string.Join(",", invocation.Arguments.Select(m => (m ?? "").ToString()).ToArray())}{Environment.NewLine}";
+			var logMsg = $"{DateTime.Now:yyyyMMddHHmmss}=>当前执行方法：{invocation.TargetType.Name}_{invocation.Method.Name} 参数是：{string.Join(",", invocation.Arguments.Select(m => (m ?? "").ToString()).ToArray())}{Environment.NewLine}";
 			try
 			{
 				invocation.Proceed();

@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
-using Demo.Core.Cache;
+using Demo.Core.Common.Attributes;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
 
@@ -7,23 +8,28 @@ namespace Demo.Core.Aop
 {
 	public class MemoryCacheAop : IInterceptor
 	{
-		private readonly ICaching _cache;
+		private readonly IMemoryCache _cache;
 
-		public MemoryCacheAop(ICaching cache)
+		public MemoryCacheAop(IMemoryCache cache)
 		{
 			_cache = cache;
 		}
 		public void Intercept(IInvocation invocation)
 		{
-			//获取自定义缓存键
-			var cacheKey = CustomCacheKey(invocation);
-			//根据key获取相应的缓存值
-			var cacheValue = _cache.Get(cacheKey);
-			if (cacheValue != null)
+			var cacheKey = "";
+			var method = invocation.MethodInvocationTarget ?? invocation.Method;
+			if (method.GetCustomAttributes(true).Any(m => m.GetType() == typeof(CachingAttribute)))
 			{
-				//将当前获取到的缓存值，赋值给当前执行方法
-				invocation.ReturnValue = cacheValue;
-				return;
+				//获取自定义缓存键
+				cacheKey = CustomCacheKey(invocation);
+				//根据key获取相应的缓存值
+				var cacheValue = _cache.Get(cacheKey);
+				if (cacheValue != null)
+				{
+					//将当前获取到的缓存值，赋值给当前执行方法
+					invocation.ReturnValue = cacheValue;
+					return;
+				} 
 			}
 			//去执行当前的方法
 			invocation.Proceed();

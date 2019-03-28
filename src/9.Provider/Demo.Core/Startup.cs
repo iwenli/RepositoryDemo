@@ -2,6 +2,7 @@
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.DynamicProxy;
 using Demo.Core.Aop;
+using Demo.Core.Common.Cache;
 using Demo.Core.Common.Extension;
 using Demo.Core.Common.Helper;
 using Demo.Core.Filter;
@@ -21,7 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Demo.Core.Cache;
+using Newtonsoft.Json;
 using static Demo.Core.CustomApiVersion.CustomApiVersion;
 
 namespace Demo.Core
@@ -38,7 +39,8 @@ namespace Demo.Core
 
 		public Startup(IConfiguration configuration)
 		{
-			Configuration = configuration;//log4net
+			Configuration = configuration;
+			//log4net
 			repository = LogManager.CreateRepository("Demo.Core");
 			//指定配置文件
 			XmlConfigurator.Configure(repository, new FileInfo("log4net.config"));
@@ -59,7 +61,9 @@ namespace Demo.Core
 		{
 			#region 部分服务注入-netcore自带方法
 			//缓存注入
-			services.AddSingleton<ICaching, MemoryCaching>();
+			services.AddSingleton<IMemoryCache>(factory => new MemoryCache(new MemoryCacheOptions()));
+			//redis
+			services.AddSingleton<IRedisCache, RedisCache>();
 			//log日志注入
 			services.AddSingleton<ILoggerHelper, LogHelper>();
 			#endregion
@@ -122,19 +126,24 @@ namespace Demo.Core
 					m.Filters.Add(typeof(GlobalExceptionsFilter));
 				})
 				.SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2)
-				//取消默认驼峰
+				//全局配置Json序列化处理
 				.AddJsonOptions(options =>
 				{
-					options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+					//忽略循环引用
+					options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+					//不使用驼峰样式的key
+					//options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+					//设置时间格式
+					options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
 				});
 			#endregion
 
 			#region Token服务注册
-			services.AddSingleton<IMemoryCache>(factory =>
+			services.AddSingleton((Func<IServiceProvider, IMemoryCache>)(factory =>
 			{
-				var cache = new MemoryCache(new MemoryCacheOptions());
+				var cache = new Microsoft.Extensions.Caching.Memory.MemoryCache(new MemoryCacheOptions());
 				return cache;
-			});
+			}));
 			services.AddAuthorization(options =>
 			{
 				options.AddPolicy("Client", policy => policy.RequireRole("Client").Build());
@@ -149,6 +158,7 @@ namespace Demo.Core
 			//注册要通过反射创建的组件
 			builder.RegisterType<LogAop>();
 			builder.RegisterType<MemoryCacheAop>();
+			builder.RegisterType<RedisCacheAop>();
 			//builder.RegisterType<AdvertisementServices>().As<IAdvertisementServices>();
 
 			try
@@ -158,11 +168,11 @@ namespace Demo.Core
 				var serviceAssembly = Assembly.LoadFile(serviceDllFile);
 				// AOP 开关，如果想要打开指定的功能，只需要在 appsettigns.json 对应对应 true 就行。
 				var cacheType = new List<Type>();
-				//if (AppsettingsHelper.Get(new string[] { "AppSettings", "RedisCaching", "Enabled" }).ObjToBool())
-				//{
-				//	cacheType.Add(typeof(BlogRedisCacheAOP));
-				//}
-				if (AppsettingsHelper.Get(new string[] { "AppSettings", "MemoryCachingAOP", "Enabled" }).ObjToBool())
+				if (AppsettingsHelper.Get(new string[] { "AppSettings", "RedisCaching", "Enabled" }).ObjToBool())
+				{
+					cacheType.Add(typeof(RedisCacheAop));
+				}
+				if (AppsettingsHelper.Get(new string[] { "AppSettings", "MemoryCachingAop", "Enabled" }).ObjToBool())
 				{
 					cacheType.Add(typeof(MemoryCacheAop));
 				}
@@ -175,8 +185,8 @@ namespace Demo.Core
 					.AsImplementedInterfaces()
 					.InstancePerLifetimeScope()
 					.EnableInterfaceInterceptors() //引用Autofac.Extras.DynamicProxy;
-												   // 如果你想注入两个，就这么写  InterceptedBy(typeof(BlogCacheAOP), typeof(BlogLogAOP));
-												   // 如果想使用Redis缓存，请必须开启 redis 服务，端口号我的是6319，如果不一样还是无效，否则请使用memory缓存 BlogCacheAOP
+												   //如果你想注入两个，就这么写  InterceptedBy(typeof(BlogCacheAOP), typeof(BlogLogAOP));
+												   //如果想使用Redis缓存，请必须开启 redis 服务，端口号我的是6319，如果不一样还是无效，否则请使用memory缓存 BlogCacheAOP
 					.InterceptedBy(cacheType.ToArray())//允许将拦截器服务的列表分配给注册。 
 					;
 

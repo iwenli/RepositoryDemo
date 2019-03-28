@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Demo.Core.Model.Models;
+using Demo.Core.Common.Attributes;
 
 namespace Demo.Core.Service.Base
 {
@@ -57,7 +58,7 @@ namespace Demo.Core.Service.Base
 		/// <param name="lstIgnoreColumns">忽略列</param>
 		/// <param name="strWhere">更新条件</param>
 		/// <returns></returns>
-		public async Task<bool> Update(TEntity entity,List<string> lstColumns = null,List<string> lstIgnoreColumns = null,
+		public async Task<bool> Update(TEntity entity, List<string> lstColumns = null, List<string> lstIgnoreColumns = null,
 			string strWhere = "")
 		{
 			return await _baseRepository.Update(entity, lstColumns, lstIgnoreColumns, strWhere);
@@ -119,6 +120,7 @@ namespace Demo.Core.Service.Base
 		/// </summary>
 		/// <param name="whereExpression">whereExpression</param>
 		/// <returns>数据列表</returns>
+		[Caching(AbsoluteExpiration = 10)]
 		public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> whereExpression)
 		{
 			return await _baseRepository.Query(whereExpression);
