@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Demo.Core.Controllers
 {
 	[Route("api/Blog")]
-	public class BlogController : Controller
+	public class BlogController : BaseController
 	{
 		private readonly IAdvertisementServices _advertisementServices;
 

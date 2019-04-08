@@ -3,6 +3,9 @@ using Demo.Core.Common.Attributes;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Linq;
+using Demo.Core.Common.Cache.ExpressionCache;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Linq.Expressions;
 
 namespace Demo.Core.Aop
 {
@@ -71,6 +74,9 @@ namespace Demo.Core.Aop
 
 			if (arg is DateTime)
 				return ((DateTime)arg).ToString("yyyyMMddHHms");
+
+			//if (arg is Expression)
+			//	return new SimpleKeyBuilder().Build((Expression)arg);
 
 			return "";
 		}

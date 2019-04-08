@@ -14,10 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="4.5.0" />
     <PackageReference Include="log4net" Version="2.0.8" />
@@ -50,5 +46,4 @@
       <UserProperties />
     </VisualStudio>
   </ProjectExtensions>
-
 </Project>

@@ -72,6 +72,32 @@ namespace Demo.Core
 			//services.AddScoped<DbContext>();
 			#endregion
 
+			#region CORS
+			services.AddCors(c =>
+			{
+				////↓↓↓↓↓↓↓注意正式环境不要使用这种全开放的处理↓↓↓↓↓↓↓↓↓↓
+				//c.AddPolicy("AllRequests", policy =>
+				//{
+				//	policy
+				//		.AllowAnyOrigin()//允许任何源
+				//		.AllowAnyMethod()//允许任何方式
+				//		.AllowAnyHeader()//允许任何头
+				//		.AllowCredentials();//允许cookie
+				//});
+				////↑↑↑↑↑↑↑注意正式环境不要使用这种全开放的处理↑↑↑↑↑↑↑↑↑↑
+
+				//一般采用这种方法
+				c.AddPolicy("LimitRequests", policy =>
+				{
+					policy
+						.WithOrigins("http://localhost:63139", "http://blog.iwenli.org")//支持多个域名端口
+						.AllowAnyHeader()//Ensures that the policy allows any header.
+						.AllowAnyMethod();//标头添加到策略
+				});
+
+			});
+			#endregion
+
 			#region Swagger UI Service
 
 			var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
@@ -229,23 +255,92 @@ namespace Demo.Core
 			{
 				app.UseDeveloperExceptionPage();
 
-				#region Swagger
-				app.UseSwagger();
-				app.UseSwaggerUI(c =>
-				{
-					//根据版本名称倒序 遍历展示
-					typeof(ApiVersions).GetEnumNames().OrderByDescending(e => e).ToList().ForEach(version =>
-					{
-						c.SwaggerEndpoint($"/swagger/{version}/swagger.json", $"{ApiName} {version}");
-					});
-					c.RoutePrefix = ""; //路径配置，设置为空，表示直接在根域名（localhost:8001）访问该文件,注意localhost:8001/swagger是访问不到的，去launchSettings.json把launchUrl去掉
-				});
-				#endregion
 			}
 			else
 			{
-				app.UseHsts();
+				app.UseExceptionHandler("/Error");
+				// 在非开发环境中，使用HTTP严格安全传输(or HSTS) 对于保护web安全是非常重要的。
+				// 强制实施 HTTPS 在 ASP.NET Core，配合 app.UseHttpsRedirection
+				//app.UseHsts();
 			}
+
+			#region Swagger
+			app.UseSwagger();
+			app.UseSwaggerUI(c =>
+			{
+				//根据版本名称倒序 遍历展示
+				typeof(ApiVersions).GetEnumNames().OrderByDescending(e => e).ToList().ForEach(version =>
+				{
+					c.SwaggerEndpoint($"/swagger/{version}/swagger.json", $"{ApiName} {version}");
+				});
+				c.RoutePrefix = ""; //路径配置，设置为空，表示直接在根域名（localhost:8001）访问该文件,注意localhost:8001/swagger是访问不到的，去launchSettings.json把launchUrl去掉
+			});
+			#endregion
+
+
+			#region 跨域callback中间件
+
+			//app.Use(async (context, next) =>
+			//{
+			//	var originResponse = context.Response.Body;
+			//	try
+			//	{
+			//		using (var memoryStream = new MemoryStream())
+			//		{
+			//			context.Response.Body = memoryStream;
+			//			await next.Invoke();
+			//			var callback = context.Request.Query["callback"];
+			//			if (!string.IsNullOrWhiteSpace(callback))
+			//			{
+			//				//替换response流
+			//				string response;
+			//				using (var streamReader = new StreamReader(memoryStream))
+			//				{
+			//					memoryStream.Position = 0;
+			//					response = streamReader.ReadToEnd();
+			//				}
+
+			//				response = $"{callback}({response})";
+			//				using (var streamWriter = new StreamWriter(originResponse))
+			//				{
+			//					streamWriter.Write(response);
+			//				}
+			//			}
+			//		}
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//	}
+			//	finally
+			//	{
+			//		//将原始的请求和响应流替换回去
+			//		context.Response.Body = originResponse;
+			//	}
+			//});
+
+			#endregion
+
+			#region Authen
+
+			//此授权认证方法已经放弃，请使用下边的官方验证方法。但是如果你还想传User的全局变量，还是可以继续使用中间件
+			//app.UseMiddleware<JwtTokenAuth>();
+
+			//如果你想使用官方认证，必须在上边ConfigureService 中，配置JWT的认证服务 (.AddAuthentication 和 .AddJwtBearer 二者缺一不可)
+			app.UseAuthentication();
+			#endregion
+
+			#region CORS
+			#region 跨域第一种版本
+			//跨域第一种版本，请要ConfigureService中配置服务 services.AddCors();
+			//    app.UseCors(options => options.WithOrigins("http://localhost:8021").AllowAnyHeader()
+			//.AllowAnyMethod());  
+			#endregion
+
+			#region 跨域第二种方法
+			//使用策略，详细策略信息在ConfigureService中
+			app.UseCors("LimitRequests");//将 CORS 中间件添加到 web 应用程序管线中, 以允许跨域请求。 
+			#endregion
+			#endregion
 
 			//app.UseMiddleware<JwtTokenAuth>();
 
